@@ -1,19 +1,45 @@
+import { getFeedThunk, selectFeed } from '@slices/feedSlice';
+import {
+  selectIngredientsError,
+  selectIngredientsLoading,
+} from '@slices/ingredientsSlice';
 import { Preloader } from '@ui';
 import { FeedUI } from '@ui-pages';
+import { useEffect } from 'react';
 
-import type { TOrder } from '@utils-types';
+import { useDispatch, useSelector } from '@services/store';
+import { ordersRefreshIntervalMs } from '@utils/constants';
 
 export const Feed = (): React.JSX.Element => {
-  // TODO: Взять переменную из стора
-  const orders: TOrder[] = [];
+  const dispatch = useDispatch();
+  const { orders, isLoading, error } = useSelector(selectFeed);
+  const isIngredientsLoading = useSelector(selectIngredientsLoading);
+  const ingredientsError = useSelector(selectIngredientsError);
+
+  useEffect(() => {
+    void dispatch(getFeedThunk());
+    const interval = setInterval(() => {
+      void dispatch(getFeedThunk());
+    }, ordersRefreshIntervalMs);
+    return (): void => clearInterval(interval);
+  }, [dispatch]);
 
   const handleGetFeeds = (): void => {
-    // TODO: Запросить ленту заказов
+    void dispatch(getFeedThunk());
   };
 
-  if (!orders.length) {
+  if (isIngredientsLoading || (isLoading && !orders.length)) {
     return <Preloader />;
   }
 
-  return <FeedUI orders={orders} handleGetFeeds={handleGetFeeds} />;
+  return (
+    <>
+      {(error ?? ingredientsError) && (
+        <p className="text text_type_main-default">
+          {error?.message ?? ingredientsError?.message}
+        </p>
+      )}
+      <FeedUI orders={orders} handleGetFeeds={handleGetFeeds} />
+    </>
+  );
 };
