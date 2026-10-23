@@ -1,5 +1,6 @@
 import { ProfileMenu } from '@components';
 import { Button, Input } from '@krgaa/react-developer-burger-ui-components';
+import { clsx } from 'clsx';
 
 import type { ProfileUIProps } from './type';
 
@@ -8,20 +9,22 @@ import styles from './profile.module.css';
 export const ProfileUI = ({
   formValue,
   isFormChanged,
+  isUpdating,
   updateUserError,
   handleSubmit,
   handleCancel,
   handleInputChange,
 }: ProfileUIProps): React.JSX.Element => (
   <main className={styles.container}>
-    <div className={`mt-30 mr-15 ${styles.menu}`}>
+    <div className={clsx('mt-30 mr-15', styles.menu)}>
       <ProfileMenu />
     </div>
-    <form className={`mt-30 ${styles.form}`} onSubmit={handleSubmit}>
+    <form className={clsx('mt-30', styles.form)} onSubmit={handleSubmit}>
       <>
         <div className="pb-6">
           <Input
             type={'text'}
+            disabled={isUpdating}
             placeholder={'Имя'}
             onChange={handleInputChange}
             value={formValue.name}
@@ -35,6 +38,7 @@ export const ProfileUI = ({
         <div className="pb-6">
           <Input
             type={'email'}
+            disabled={isUpdating}
             placeholder={'E-mail'}
             onChange={handleInputChange}
             value={formValue.email}
@@ -48,6 +52,7 @@ export const ProfileUI = ({
         <div className="pb-6">
           <Input
             type={'password'}
+            disabled={isUpdating}
             placeholder={'Пароль'}
             onChange={handleInputChange}
             value={formValue.password}
@@ -65,16 +70,17 @@ export const ProfileUI = ({
               htmlType="button"
               size="medium"
               onClick={handleCancel}
+              disabled={isUpdating}
             >
               Отменить
             </Button>
-            <Button type="primary" size="medium" htmlType="submit">
-              Сохранить
+            <Button type="primary" size="medium" htmlType="submit" disabled={isUpdating}>
+              {isUpdating ? 'Сохраняем...' : 'Сохранить'}
             </Button>
           </div>
         )}
         {updateUserError && (
-          <p className={`${styles.error} pt-5 text text_type_main-default`}>
+          <p className={clsx(styles.error, 'pt-5 text text_type_main-default')}>
             {updateUserError}
           </p>
         )}

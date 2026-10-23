@@ -1,8 +1,3 @@
-import type { SerializedError } from '@reduxjs/toolkit';
-import type { TIngredient } from '@utils-types';
+import type { TBackgroundLocationState } from '@utils-types';
 
-export type AppContentProps = {
-  ingredients: TIngredient[];
-  isLoading: boolean;
-  error: SerializedError | null;
-};
+export type AppLocationState = Partial<TBackgroundLocationState>;

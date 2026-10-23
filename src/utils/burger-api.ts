@@ -58,6 +58,14 @@ export const fetchWithRefresh = async <T>(
   options: RequestInit
 ): Promise<T> => {
   try {
+    if (!getCookie('accessToken') && localStorage.getItem('refreshToken')) {
+      const refreshData = await refreshToken();
+      if (options.headers) {
+        (options.headers as Record<string, string>).authorization =
+          refreshData.accessToken;
+      }
+    }
+
     const res = await fetch(url, options);
     return await checkResponse<T>(res);
   } catch (err) {

@@ -1,29 +1,56 @@
+import { selectConstructorItems } from '@slices/constructorSlice';
+import {
+  createOrderThunk,
+  resetCreatedOrder,
+  selectCreatedOrder,
+  selectOrderCreateError,
+  selectOrderCreating,
+} from '@slices/orderSlice';
+import { selectAuthChecked, selectUser } from '@slices/userSlice';
 import { BurgerConstructorUI } from '@ui';
 import { useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import type { TConstructorIngredient, TConstructorState, TOrder } from '@utils-types';
+import { useDispatch, useSelector } from '@services/store';
+import { bunCount } from '@utils/constants';
+
+import type { TConstructorIngredient } from '@utils-types';
 
 export const BurgerConstructor = (): React.JSX.Element | null => {
-  /** TODO: Взять переменные constructorItems, orderRequest и orderModalData из стора */
-  const constructorItems: TConstructorState = {
-    bun: null,
-    ingredients: [],
-  };
-  const orderRequest = false;
-  const orderModalData: TOrder | null = null;
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const isAuthChecked = useSelector(selectAuthChecked);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const constructorItems = useSelector(selectConstructorItems);
+  const orderRequest = useSelector(selectOrderCreating);
+  const orderModalData = useSelector(selectCreatedOrder);
+  const orderError = useSelector(selectOrderCreateError);
 
   const onOrderClick = (): void => {
+    if (!isAuthChecked) return;
+
+    if (!user) {
+      void navigate('/login', { state: { from: location } });
+      return;
+    }
+
     if (!constructorItems.bun || orderRequest) return;
-    // TODO: Оформить заказ
+    const ingredients = [
+      constructorItems.bun._id,
+      ...constructorItems.ingredients.map((item) => item._id),
+      constructorItems.bun._id,
+    ];
+    void dispatch(createOrderThunk(ingredients));
   };
 
   const closeOrderModal = (): void => {
-    // TODO: Закрыть модальное окно и сбросить заказ
+    dispatch(resetCreatedOrder());
   };
 
   const price = useMemo(
     () =>
-      (constructorItems.bun ? constructorItems.bun.price * 2 : 0) +
+      (constructorItems.bun ? constructorItems.bun.price * bunCount : 0) +
       constructorItems.ingredients.reduce(
         (s: number, v: TConstructorIngredient) => s + v.price,
         0
@@ -37,6 +64,7 @@ export const BurgerConstructor = (): React.JSX.Element | null => {
       orderRequest={orderRequest}
       constructorItems={constructorItems}
       orderModalData={orderModalData}
+      orderError={orderError?.message}
       onOrderClick={onOrderClick}
       closeOrderModal={closeOrderModal}
     />

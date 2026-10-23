@@ -1,9 +1,6 @@
-import type { TConstructorIngredient } from '@utils-types';
+import type { BurgerConstructorElementProps } from '@components/burger-constructor-element/type';
 
-export type BurgerConstructorElementUIProps = {
-  ingredient: TConstructorIngredient;
-  index: number;
-  totalItems: number;
+export type BurgerConstructorElementUIProps = BurgerConstructorElementProps & {
   handleMoveUp: () => void;
   handleMoveDown: () => void;
   handleClose: () => void;

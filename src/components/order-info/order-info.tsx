@@ -1,25 +1,43 @@
+import { selectFeed } from '@slices/feedSlice';
+import { selectIngredients, selectIngredientsError } from '@slices/ingredientsSlice';
+import { getOrderThunk, selectOrder, selectOrderError } from '@slices/orderSlice';
+import { selectProfileOrders } from '@slices/profileOrdersSlice';
 import { Preloader, OrderInfoUI } from '@ui';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
+
+import { useDispatch, useSelector } from '@services/store';
 
 import type { TIngredient } from '@utils-types';
 
 export const OrderInfo = (): React.JSX.Element => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0,
-  };
+  const dispatch = useDispatch();
+  const { number } = useParams();
+  const { pathname } = useLocation();
+  const orderNumber = Number(number);
+  const loadedOrder = useSelector(selectOrder);
+  const { orders: feedOrders } = useSelector(selectFeed);
+  const { orders: profileOrders } = useSelector(selectProfileOrders);
+  const feedOrder = feedOrders.find((order) => order.number === orderNumber);
+  const profileOrder = profileOrders.find((order) => order.number === orderNumber);
+  const orderFromList = pathname.startsWith('/profile/orders')
+    ? (profileOrder ?? feedOrder)
+    : (feedOrder ?? profileOrder);
+  const orderData = orderFromList ?? loadedOrder;
+  const ingredients = useSelector(selectIngredients);
+  const error = useSelector(selectOrderError);
+  const ingredientsError = useSelector(selectIngredientsError);
+  const isValidNumber = Number.isSafeInteger(orderNumber) && orderNumber > 0;
 
-  const ingredients: TIngredient[] = [];
+  useEffect(() => {
+    if (!isValidNumber || orderFromList) return;
+    void dispatch(getOrderThunk(orderNumber));
+  }, [dispatch, orderNumber, isValidNumber, orderFromList]);
 
   /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
-    if (!orderData || !ingredients.length) return null;
+    if (!orderData || orderData.number !== orderNumber || !ingredients.length)
+      return null;
 
     const date = new Date(orderData.createdAt);
 
@@ -55,7 +73,19 @@ export const OrderInfo = (): React.JSX.Element => {
       date,
       total,
     };
-  }, [orderData, ingredients]);
+  }, [orderData, ingredients, orderNumber]);
+
+  if (!isValidNumber) {
+    return <p className="text text_type_main-default">Заказ не найден</p>;
+  }
+
+  if ((!orderFromList && error) || ingredientsError) {
+    return (
+      <p className="text text_type_main-default">
+        {ingredientsError?.message ?? error?.message}
+      </p>
+    );
+  }
 
   if (!orderInfo) {
     return <Preloader />;
