@@ -8,7 +8,6 @@ import { FeedUI } from '@ui-pages';
 import { useEffect } from 'react';
 
 import { useDispatch, useSelector } from '@services/store';
-import { ordersRefreshIntervalMs } from '@utils/constants';
 
 export const Feed = (): React.JSX.Element => {
   const dispatch = useDispatch();
@@ -18,10 +17,6 @@ export const Feed = (): React.JSX.Element => {
 
   useEffect(() => {
     void dispatch(getFeedThunk());
-    const interval = setInterval(() => {
-      void dispatch(getFeedThunk());
-    }, ordersRefreshIntervalMs);
-    return (): void => clearInterval(interval);
   }, [dispatch]);
 
   const handleGetFeeds = (): void => {

@@ -25,7 +25,7 @@ export const getFeedThunk = createAsyncThunk<
   TOrdersData,
   void,
   { state: { feed: FeedState } }
->('feed/get', (): Promise<TOrdersData> => getFeedsApi(), {
+>('feed/get', getFeedsApi, {
   condition: (_, { getState }): boolean => !getState().feed.isLoading,
 });
 

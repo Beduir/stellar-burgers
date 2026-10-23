@@ -7,7 +7,6 @@ import { ProfileOrdersUI } from '@ui-pages';
 import { useEffect } from 'react';
 
 import { useDispatch, useSelector } from '@services/store';
-import { ordersRefreshIntervalMs } from '@utils/constants';
 
 export const ProfileOrders = (): React.JSX.Element => {
   const dispatch = useDispatch();
@@ -17,10 +16,6 @@ export const ProfileOrders = (): React.JSX.Element => {
 
   useEffect(() => {
     void dispatch(getProfileOrdersThunk());
-    const interval = setInterval(() => {
-      void dispatch(getProfileOrdersThunk());
-    }, ordersRefreshIntervalMs);
-    return (): void => clearInterval(interval);
   }, [dispatch]);
 
   return (

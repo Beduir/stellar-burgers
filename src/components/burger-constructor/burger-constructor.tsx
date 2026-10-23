@@ -1,5 +1,4 @@
 import { selectConstructorItems } from '@slices/constructorSlice';
-import { getFeedThunk } from '@slices/feedSlice';
 import {
   createOrderThunk,
   resetCreatedOrder,
@@ -7,7 +6,6 @@ import {
   selectOrderCreateError,
   selectOrderCreating,
 } from '@slices/orderSlice';
-import { getProfileOrdersThunk } from '@slices/profileOrdersSlice';
 import { selectAuthChecked, selectUser } from '@slices/userSlice';
 import { BurgerConstructorUI } from '@ui';
 import { useMemo } from 'react';
@@ -43,12 +41,7 @@ export const BurgerConstructor = (): React.JSX.Element | null => {
       ...constructorItems.ingredients.map((item) => item._id),
       constructorItems.bun._id,
     ];
-    void dispatch(createOrderThunk(ingredients)).then((action) => {
-      if (createOrderThunk.fulfilled.match(action)) {
-        void dispatch(getFeedThunk());
-        void dispatch(getProfileOrdersThunk());
-      }
-    });
+    void dispatch(createOrderThunk(ingredients));
   };
 
   const closeOrderModal = (): void => {

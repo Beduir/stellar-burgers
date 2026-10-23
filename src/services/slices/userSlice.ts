@@ -3,7 +3,6 @@ import {
   getUserApi,
   loginUserApi,
   logoutApi,
-  refreshToken,
   registerUserApi,
   resetPasswordApi,
   updateUserApi,
@@ -58,8 +57,6 @@ export const checkUserThunk = createAsyncThunk<
     if (!accessToken && !savedRefreshToken) return null;
 
     try {
-      if (!accessToken) await refreshToken();
-
       const response = await getUserApi();
       if (!response.success) throw new Error('Не удалось проверить пользователя');
 

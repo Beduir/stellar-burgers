@@ -27,7 +27,7 @@ export const getProfileOrdersThunk = createAsyncThunk<
   TOrder[],
   void,
   { state: { profileOrders: ProfileOrdersState } }
->('profileOrders/get', (): Promise<TOrder[]> => getOrdersApi(), {
+>('profileOrders/get', getOrdersApi, {
   condition: (_, { getState }): boolean => !getState().profileOrders.isLoading,
 });
 

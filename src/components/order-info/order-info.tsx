@@ -1,32 +1,38 @@
+import { selectFeed } from '@slices/feedSlice';
 import { selectIngredients, selectIngredientsError } from '@slices/ingredientsSlice';
 import { getOrderThunk, selectOrder, selectOrderError } from '@slices/orderSlice';
+import { selectProfileOrders } from '@slices/profileOrdersSlice';
 import { Preloader, OrderInfoUI } from '@ui';
 import { useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 
 import { useDispatch, useSelector } from '@services/store';
-import { ordersRefreshIntervalMs } from '@utils/constants';
 
 import type { TIngredient } from '@utils-types';
 
 export const OrderInfo = (): React.JSX.Element => {
   const dispatch = useDispatch();
   const { number } = useParams();
+  const { pathname } = useLocation();
   const orderNumber = Number(number);
-  const orderData = useSelector(selectOrder);
+  const loadedOrder = useSelector(selectOrder);
+  const { orders: feedOrders } = useSelector(selectFeed);
+  const { orders: profileOrders } = useSelector(selectProfileOrders);
+  const feedOrder = feedOrders.find((order) => order.number === orderNumber);
+  const profileOrder = profileOrders.find((order) => order.number === orderNumber);
+  const orderFromList = pathname.startsWith('/profile/orders')
+    ? (profileOrder ?? feedOrder)
+    : (feedOrder ?? profileOrder);
+  const orderData = orderFromList ?? loadedOrder;
   const ingredients = useSelector(selectIngredients);
   const error = useSelector(selectOrderError);
   const ingredientsError = useSelector(selectIngredientsError);
   const isValidNumber = Number.isSafeInteger(orderNumber) && orderNumber > 0;
 
   useEffect(() => {
-    if (!isValidNumber) return;
+    if (!isValidNumber || orderFromList) return;
     void dispatch(getOrderThunk(orderNumber));
-    const interval = setInterval(() => {
-      void dispatch(getOrderThunk(orderNumber));
-    }, ordersRefreshIntervalMs);
-    return (): void => clearInterval(interval);
-  }, [dispatch, orderNumber, isValidNumber]);
+  }, [dispatch, orderNumber, isValidNumber, orderFromList]);
 
   /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
@@ -73,10 +79,10 @@ export const OrderInfo = (): React.JSX.Element => {
     return <p className="text text_type_main-default">Заказ не найден</p>;
   }
 
-  if (error || ingredientsError) {
+  if ((!orderFromList && error) || ingredientsError) {
     return (
       <p className="text text_type_main-default">
-        {error?.message ?? ingredientsError?.message}
+        {ingredientsError?.message ?? error?.message}
       </p>
     );
   }
